@@ -6,7 +6,7 @@ from players import *
 from tournament import torneio
 
 def tournament_function(start, end, progress_queue, result_queue):
-	num_games = 20#100
+	num_games = 20
 	depth = 4
 	players = [
 		Chapiteau("Chapiteau", depth), # 578 pontos em 100 games
@@ -17,7 +17,8 @@ def tournament_function(start, end, progress_queue, result_queue):
 		#OwnedSeeds("OwnedSeeds", depth), # OwnedSeeds
 		#PossiblePassAdversary("PossiblePassAdversary", depth),
 		#OwnedPossiblePassAdversary("OwnedPossiblePassAdversary", depth),
-		StealSeedsBetter("steal_seeds_better", depth),
+		#StealSeedsBetter("steal_seeds_better", depth),
+		StealSeedsBetterV2("steal_seeds_better2", depth),
 		#MyOwn("MyOwn", depth),
 		#MyOwnv2("MyOwnv2", depth),
 		#MyOwnv3("MyOwnv3", depth),
@@ -39,7 +40,7 @@ def launch_processes():
 	progress_queue = multiprocessing.Queue()  # Queue to hold progress updates
 	result_queue = multiprocessing.Queue()  # Queue to hold individual results
 
-	num_cores = cpu_count() - 4
+	num_cores = cpu_count()
 	num_processes = max(1, int(num_cores))
 	num_boards = len(fairkalah_states)
 
