@@ -95,19 +95,15 @@ def steal_seeds_better(estado, jogador):
 	if estado.is_game_over():
 		return estado.result()*10000
 	#maixmizar povos meus vazios com pocos adversarios cheios
-	#score -= len(max_holes(estado, jogador))
 	#print(estado)
 	score += (possible_pass_better(estado, jogador) - possible_pass_adversary(estado,jogador)) * 2
 	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
 	stolen_seeds_list = stolen_seeds_better(estado, jogador)
-	#stolen_seeds_list = stolen_seeds_dando_a_volta(estado, jogador)
 	stolen_seeds_num = 0
 	if(len(stolen_seeds_list) > 0):
 		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
 	score += stolen_seeds_num
 	return score if jogador == estado.SOUTH else (-score)
-	#else:
-	#	return 0
 
 class StealSeedsBetter(JogadorAlfaBeta):
 	def __init__(self, nome, depth):
@@ -710,3 +706,25 @@ def decprof(estado,jogador):
         aux = estado.result()
         return aux * 100 if jogador == estado.SOUTH else aux  * -100
     return ret
+
+def steal_seeds_better_v2(estado, jogador): # 7941
+	score = 0
+	if estado.pass_turn:
+		if jogador == estado.SOUTH:
+			score -= estado.state[13]
+		else:
+			score -= estado.state[6]
+	if estado.is_game_over():
+		return estado.result()*100
+	score += (possible_pass_better(estado, jogador) - possible_pass_adversary(estado,jogador)) * 2
+	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
+	stolen_seeds_list = stolen_seeds_better(estado, jogador)
+	stolen_seeds_num = 0
+	if(len(stolen_seeds_list) > 0):
+		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
+	score += stolen_seeds_num
+	return score if jogador == estado.SOUTH else (-score)
+
+class StealSeedsBetterV2(JogadorAlfaBeta):
+	def __init__(self, nome, depth):
+		super().__init__(nome, depth, steal_seeds_better_v2)
