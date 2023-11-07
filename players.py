@@ -1,3 +1,4 @@
+import sys
 from kalah import *
 
 ### Player Utils ###
@@ -65,19 +66,48 @@ def stolen_seeds_better(estado, jogador):
 	stolen_seeds.sort()
 	return stolen_seeds
 
+def stolen_seeds_dando_a_volta(estado, jogador):
+	#entre 13 e 18
+	#ver se alterar pass vale a pena
+	stolen_seeds = []
+	if jogador == estado.SOUTH:
+		start_well = 0
+		end_well = (len(estado.state)//2)-2
+	else:
+		start_well = 7
+		end_well = len(estado.state)-2
+	for i in range(start_well, end_well):
+		if estado.state[i] > 0 and ((i + estado.state[i] <= end_well and estado.state[i+estado.state[i]] == 0) or ( (i + estado.state[i])%13 - 1 <= end_well and estado.state[(i+estado.state[i])%13 - 1] == 0 ) and estado.state[i]>7):
+			seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+			if seeds_in_opposite_well > 0:
+				stolen_seeds.append(1 + seeds_in_opposite_well)
+	stolen_seeds.sort()
+	return stolen_seeds
+
 def steal_seeds_better(estado, jogador):
 	score = 0
+	if estado.pass_turn:
+		if jogador == estado.SOUTH:
+			score -= estado.state[13]
+		else:
+			score -= estado.state[6]
+	#if jogador == estado.to_move:
 	if estado.is_game_over():
 		return estado.result()*10000
 	#maixmizar povos meus vazios com pocos adversarios cheios
-	score += (possible_pass_better(estado, jogador) - possible_pass_adversary(estado,jogador))
-	score += (estado.state[6] - estado.state[13]) * 4
+	#score -= len(max_holes(estado, jogador))
+	#print(estado)
+	score += (possible_pass_better(estado, jogador) - possible_pass_adversary(estado,jogador)) * 2
+	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
 	stolen_seeds_list = stolen_seeds_better(estado, jogador)
+	#stolen_seeds_list = stolen_seeds_dando_a_volta(estado, jogador)
 	stolen_seeds_num = 0
 	if(len(stolen_seeds_list) > 0):
 		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
 	score += stolen_seeds_num
 	return score if jogador == estado.SOUTH else (-score)
+	#else:
+	#	return 0
 
 class StealSeedsBetter(JogadorAlfaBeta):
 	def __init__(self, nome, depth):
@@ -161,7 +191,7 @@ def max_holes(estado, jogador):
 	holes_list = []
 	state = estado.state
 	if jogador == estado.SOUTH:
-		for i in range(1,6):
+		for i in range(0,6):
 			if state[i] == 0 and opposite_well(state, i) > 0:
 				holes_list.append(state[opposite_well_index(state, i)])
 				holes += 1
@@ -540,15 +570,21 @@ def my_own_fun_v6(estado, jogador):
 			score += 3  # Encourage capturing opportunities
 
 	# Adjust score based on the number of captured seeds, favoring the player with fewer captures
-	if jogador == estado.SOUTH:
+	""" if jogador == estado.SOUTH:
 		score += (estado.state[6] - estado.state[13]) * 3
 	else:
-		score += (estado.state[13] - estado.state[6]) * 3
+		score += (estado.state[13] - estado.state[6]) * 3 """
+	score += (estado.state[6] - estado.state[13]) * 3
 
 	# Encourage strategic moves to empty player's pits
-	for i in range(6):
-		if estado.state[i] == 0:
-			score += 1
+	if jogador == estado.SOUTH:
+		for i in range(6):
+			if estado.state[i] == 0:
+				score += 1
+	else:
+		for i in range(7,14):
+			if estado.state[i] == 0:
+				score += 1
 
 	# Penalize for opponent's pits near the player's Kalah, avoiding captures
 	if jogador == estado.SOUTH:
@@ -569,7 +605,6 @@ def my_own_fun_v7(estado, jogador):
 	if estado.is_game_over():
 		return estado.result()*100
 	score = possible_pass_better(estado, jogador)
-	score += (estado.state[6] - estado.state[13]) * 3
 	stolen_seeds_list = stolen_seeds_better(estado, jogador)
 	stolen_seeds_num = 0
 	if(len(stolen_seeds_list) > 0):
@@ -577,22 +612,26 @@ def my_own_fun_v7(estado, jogador):
 	score += stolen_seeds_num
 
 	# Evaluate capturing opportunities
-	for i in range(6):
-		if estado.state[i] == 0:
-			continue
-		if (estado.state[i] + i) % 13 < 6 and estado.state[(estado.state[i] + i) % 13] == 0:
-			score += 3  # Encourage capturing opportunities
-
-	# Adjust score based on the number of captured seeds, favoring the player with fewer captures
 	if jogador == estado.SOUTH:
-		score += (estado.state[6] - estado.state[13]) * 3
+		for i in range(6):
+			if estado.state[i] == 0:
+				continue
+			if (estado.state[i] + i) % 13 < 6 and estado.state[(estado.state[i] + i) % 13] == 0:
+				score += 3  # Encourage capturing opportunities
 	else:
-		score += (estado.state[13] - estado.state[6]) * 3
+		for i in range(7,14):
+			if estado.state[i] == 0:
+				continue
+			if (estado.state[i] + i) % 13 < 6 and estado.state[(estado.state[i] + i) % 13] == 0:
+				score += 3  # Encourage capturing opportunities
+	# Adjust score based on the number of captured seeds, favoring the player with fewer captures
+	score += (estado.state[6] - estado.state[13]) * 3
 
 	# Encourage strategic moves to empty player's pits
-	for i in range(6):
-		if estado.state[i] == 0:
-			score += 1
+	if jogador == estado.SOUTH:
+		for i in range(6):
+			if estado.state[i] == 0:
+				score += 1
 
 	# Penalize for opponent's pits near the player's Kalah, avoiding captures
 	if jogador == estado.SOUTH:
@@ -621,7 +660,7 @@ def steal_seeds_better_holes(estado, jogador):
 		score += -1
 	else:
 		score += passings
-	#holes = max_holes(estado, jogador)
+	holes = max_holes(estado, jogador)
 	""" if len(holes) > 0:
 		score += holes[-1] + len(holes)
 	else:
