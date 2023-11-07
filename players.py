@@ -70,22 +70,12 @@ def steal_seeds_better(estado, jogador):
 	if estado.is_game_over():
 		return estado.result()*10000
 	#maixmizar povos meus vazios com pocos adversarios cheios
-	score += possible_pass_better(estado, jogador) #* 3
-	score += (estado.state[6] - estado.state[13]) * 3
-	""" if jogador == estado.SOUTH:
-		score += (estado.state[6] - estado.state[13]) * 3
-	else:
-		score -= (estado.state[6] - estado.state[13]) * 3 """
-	#score += sum(estado.state[0:6]) - sum(estado.state[7:13])
-	""" sum_s = sum(estado.state[:7])
-	sum_n = sum(estado.state[7:])
-	score += abs(sum_s - sum_n) """
-	#score = sum(estado.state[0:7]) if jogador == estado.SOUTH else sum(estado.state[7:])
-	#score += 2 * ( (estado.state[6]) if jogador == estado.SOUTH else (estado.state[13]) )
+	score += (possible_pass_better(estado, jogador) - possible_pass_adversary(estado,jogador))
+	score += (estado.state[6] - estado.state[13]) * 4
 	stolen_seeds_list = stolen_seeds_better(estado, jogador)
 	stolen_seeds_num = 0
 	if(len(stolen_seeds_list) > 0):
-		stolen_seeds_num = stolen_seeds_list[-1] # + len(stolen_seeds_list)
+		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
 	score += stolen_seeds_num
 	return score if jogador == estado.SOUTH else (-score)
 
