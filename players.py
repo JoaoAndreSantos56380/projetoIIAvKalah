@@ -86,18 +86,11 @@ def stolen_seeds_dando_a_volta(estado, jogador):
 
 def steal_seeds_better(estado, jogador):
 	score = 0
-	if estado.pass_turn:
-		if jogador == estado.SOUTH:
-			score -= estado.state[13]
-		else:
-			score -= estado.state[6]
-	#if jogador == estado.to_move:
 	if estado.is_game_over():
 		return estado.result()*10000
 	#maixmizar povos meus vazios com pocos adversarios cheios
-	#print(estado)
-	score += (possible_pass_better(estado, jogador) - possible_pass_adversary(estado,jogador)) * 2
-	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
+	score += possible_pass_better(estado, jogador) #* 3
+	score += (estado.state[6] - estado.state[13]) * 3
 	stolen_seeds_list = stolen_seeds_better(estado, jogador)
 	stolen_seeds_num = 0
 	if(len(stolen_seeds_list) > 0):
