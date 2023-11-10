@@ -697,21 +697,6 @@ def func_1408385(estado, jogador):
 	#print("Score:",score)
 	return score
 
-def decprof(estado,jogador):
-    ret = 0
-    if jogador == estado.SOUTH:
-        for i in range(7):
-            ret += estado.state[i]
-            ret -= estado.state[7+i]
-    else:
-        for i in range(7):
-            ret -= estado.state[i]
-            ret += estado.state[7+i]
-    if estado.is_game_over():
-        aux = estado.result()
-        return aux * 100 if jogador == estado.SOUTH else aux  * -100
-    return ret
-
 def steal_seeds_better_v2(estado, jogador):
 	if estado.is_game_over():
 		return estado.result()*100
@@ -760,7 +745,7 @@ def steal_seeds_better_v2_2_impar(estado, jogador):
 			score -= estado.state[13]
 		else:
 			score -= estado.state[6]
-	score +=(possible_pass_better(estado, jogador)- possible_pass_adversary(estado, jogador))*2
+	score += (possible_pass_better(estado, jogador)- possible_pass_adversary(estado, jogador))*2
 	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
 
 	stolen_seeds_list = stolen_seeds_better(estado, jogador)
@@ -773,8 +758,6 @@ def steal_seeds_better_v2_2_impar(estado, jogador):
 	if(len(stolen_seeds_list) > 0):
 		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
 	score -= stolen_seeds_num
-
-	""" score -= len(max_holes(estado, jogador)) """
 
 	return score if jogador == estado.SOUTH else (-score)
 
