@@ -7,7 +7,7 @@ from tournament import torneio
 
 def tournament_function(start, end, progress_queue, result_queue):
 	num_games = 20
-	depth = 4
+	depth = 2
 	players = [
 		Chapiteau("Chapiteau", depth), # 578 pontos em 100 games
 		#WonSeeds("WonSeeds", depth),
@@ -18,7 +18,6 @@ def tournament_function(start, end, progress_queue, result_queue):
 		#PossiblePassAdversary("PossiblePassAdversary", depth),
 		#OwnedPossiblePassAdversary("OwnedPossiblePassAdversary", depth),
 		#StealSeedsBetter("steal_seeds_better", depth),
-		StealSeedsBetterV2("steal_seeds_better2", depth),
 		#MyOwn("MyOwn", depth),
 		#MyOwnv2("MyOwnv2", depth),
 		#MyOwnv3("MyOwnv3", depth),
@@ -26,6 +25,11 @@ def tournament_function(start, end, progress_queue, result_queue):
 		#MyOwnv5("MyOwnv5", depth),
 		#MyOwnv6("MyOwnv6", depth),
 		#MyOwnv7("MyOwnv7", depth),
+		#StealSeedsBetterV2("steal_seeds_better2", depth),
+		#StealSeedsBetterV2_2("steal_seeds_better2_2", depth),
+		#StealSeedsBetterV2_2_impar("steal_seeds_better2_2_impar", depth),
+		StealSeedsBetterHoles("esburacado", depth),
+		StealSeedsBetterV2_2_impar("steal_seeds_better2_2_impar2", depth),
 	]
 	tournament = dict()
 	for index in range(start, end):
@@ -70,8 +74,14 @@ def launch_processes():
 				final_results[key] = final_results.get(key, 0) + value
 
 	# Determine the global winner
-	global_champion = max(final_results, key=final_results.get)
-	print("Global Winner:", global_champion, "\nScores:", final_results)
+	temp_results = final_results.copy()
+	first_place_name = max(final_results, key = final_results.get)
+	first_place = (first_place_name, final_results.get(first_place_name))
+	temp_results.pop(first_place_name)
+	second_place_name = max(temp_results, key= temp_results.get)
+	second_place = (second_place_name, temp_results.get(second_place_name))
+	final_results = dict(sorted(final_results.items(), key=lambda item: item[1], reverse = True))
+	print(final_results, "(diff:", first_place[1] - second_place[1], ") ", end="")
 
 if __name__ == '__main__':
 	freeze_support()
@@ -79,4 +89,4 @@ if __name__ == '__main__':
 	launch_processes()
 	end_time = time.perf_counter()
 	elapsed_time = end_time - start_time
-	print("Ran in ", elapsed_time)
+	print("Ran in", elapsed_time)
