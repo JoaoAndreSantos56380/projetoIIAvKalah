@@ -36,19 +36,19 @@ class JogadorAlfaBeta(Jogador):
 
 def possible_pass_better(estado, jogador):
 	pits = 6
-	thefts = 0
+	owned = 0
 	i = pits
 	if jogador == estado.SOUTH:
 		for pit in range(pits):
 			if estado.state[pit] == i:
-				thefts += 1
+				owned += 1
 			i -= 1
 	else :
 		for pit in range(7,14):
 			if estado.state[pit] == i:
-				thefts += 1
+				owned += 1
 			i -= 1
-	return thefts
+	return owned
 
 def stolen_seeds_better(estado, jogador):
 	stolen_seeds = []
@@ -66,6 +66,23 @@ def stolen_seeds_better(estado, jogador):
 	stolen_seeds.sort()
 	return stolen_seeds
 
+def stolen_seeds_adv(estado, jogador):
+	stolen_seeds = []
+	if jogador == estado.NORTH:
+		start_well = 0
+		end_well = (len(estado.state)//2)-2
+	else:
+		start_well = 7
+		end_well = len(estado.state)-2
+	for i in range(start_well, end_well):
+		if estado.state[i] > 0 and i+estado.state[i] <= end_well and estado.state[i+estado.state[i]] == 0:
+			seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+			if seeds_in_opposite_well > 0:
+				stolen_seeds.append(1 + seeds_in_opposite_well)
+	stolen_seeds.sort()
+	return stolen_seeds
+
+#nao esta testado
 def stolen_seeds_dando_a_volta(estado, jogador):
 	#entre 13 e 18
 	#ver se alterar pass vale a pena
@@ -270,9 +287,8 @@ class OwnedSeeds(JogadorAlfaBeta):
 
 # Lost to owned_seeds_fun
 def won_seeds_fun(estado, jogador):
-	win = winner(estado)
-	if win != 0:
-		return win
+	if estado.is_game_over():
+		return estado.result()*1000
 	score = won_seeds(estado, jogador)
 	return score if jogador == estado.SOUTH else (-score)
 class WonSeeds(JogadorAlfaBeta):
@@ -650,15 +666,11 @@ def steal_seeds_better_holes(estado, jogador):
 	else:
 		score += passings
 	holes = max_holes(estado, jogador)
-	""" if len(holes) > 0:
+	if len(holes) > 0:
 		score += holes[-1] + len(holes)
 	else:
-		score -= 1 """
-	if jogador == estado.SOUTH:
-		score += (state[6] - state[13]) * 3
-	else:
-		score += (state[13] - state[6]) * 3
-	#score += (estado.state[6] - estado.state[13]) * 3
+		score -= 1
+	score += (estado.state[6] - estado.state[13]) * 3
 	stolen_seeds_list = stolen_seeds(estado, jogador)
 	stolen_seeds_num = 0
 	if(len(stolen_seeds_list) > 0):
@@ -700,16 +712,10 @@ def decprof(estado,jogador):
         return aux * 100 if jogador == estado.SOUTH else aux  * -100
     return ret
 
-def steal_seeds_better_v2(estado, jogador): # 7941
-	score = 0
-	if estado.pass_turn:
-		if jogador == estado.SOUTH:
-			score -= estado.state[13]
-		else:
-			score -= estado.state[6]
+def steal_seeds_better_v2(estado, jogador):
 	if estado.is_game_over():
 		return estado.result()*100
-	score += (possible_pass_better(estado, jogador) - possible_pass_adversary(estado,jogador)) * 2
+	score = possible_pass_better(estado, jogador)
 	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
 	stolen_seeds_list = stolen_seeds_better(estado, jogador)
 	stolen_seeds_num = 0
@@ -721,3 +727,59 @@ def steal_seeds_better_v2(estado, jogador): # 7941
 class StealSeedsBetterV2(JogadorAlfaBeta):
 	def __init__(self, nome, depth):
 		super().__init__(nome, depth, steal_seeds_better_v2)
+
+def steal_seeds_better_v2_2(estado, jogador):
+	if estado.is_game_over():
+		return estado.result()*100
+	score = 0
+	if estado.pass_turn:
+		if jogador == estado.SOUTH:
+			score -= estado.state[13]
+		else:
+			score -= estado.state[6]
+	score += possible_pass_better(estado, jogador)*2
+	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
+	stolen_seeds_list = stolen_seeds_better(estado, jogador)
+	stolen_seeds_num = 0
+	if(len(stolen_seeds_list) > 0):
+		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
+	score += stolen_seeds_num
+	return score if jogador == estado.SOUTH else (-score)
+
+class StealSeedsBetterV2_2(JogadorAlfaBeta):
+	def __init__(self, nome, depth):
+		super().__init__(nome, depth, steal_seeds_better_v2_2)
+
+def steal_seeds_better_v2_2_impar(estado, jogador):
+	if estado.is_game_over():
+		return estado.result() * sys.maxsize
+	score = 0
+
+	if estado.pass_turn:
+		if jogador == estado.SOUTH:
+			score -= estado.state[13]
+		else:
+			score -= estado.state[6]
+	score +=(possible_pass_better(estado, jogador)- possible_pass_adversary(estado, jogador))*2
+	score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
+
+	stolen_seeds_list = stolen_seeds_better(estado, jogador)
+	stolen_seeds_num = 0
+	if(len(stolen_seeds_list) > 0):
+		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
+	score += stolen_seeds_num
+
+	stolen_seeds_list = stolen_seeds_adv(estado, jogador)
+	if(len(stolen_seeds_list) > 0):
+		stolen_seeds_num = stolen_seeds_list[-1] + len(stolen_seeds_list)
+	score -= stolen_seeds_num
+
+	""" score -= len(max_holes(estado, jogador)) """
+
+	return score if jogador == estado.SOUTH else (-score)
+
+
+
+class StealSeedsBetterV2_2_impar(JogadorAlfaBeta):
+	def __init__(self, nome, depth):
+		super().__init__(nome, depth, steal_seeds_better_v2_2_impar)
