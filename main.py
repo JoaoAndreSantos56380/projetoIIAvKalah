@@ -3,33 +3,17 @@ import multiprocessing
 import time
 from tqdm import tqdm
 from players import *
-from tournament import torneio
-
+from tournament import  torneio
 def tournament_function(start, end, progress_queue, result_queue):
 	num_games = 20
 	depth = 2
 	players = [
 		Chapiteau("Chapiteau", depth), # 578 pontos em 100 games
-		#WonSeeds("WonSeeds", depth),
-		#OwnedWonSeeds("OwnedWonSeeds", depth),
-		#PossiblePass("PossiblePass", depth),
-		#OwnedPossiblePass("OwnedPossiblePass", depth),
-		#OwnedSeeds("OwnedSeeds", depth), # OwnedSeeds
-		#PossiblePassAdversary("PossiblePassAdversary", depth),
-		#OwnedPossiblePassAdversary("OwnedPossiblePassAdversary", depth),
-		#StealSeedsBetter("steal_seeds_better", depth),
-		#MyOwn("MyOwn", depth),
-		#MyOwnv2("MyOwnv2", depth),
-		#MyOwnv3("MyOwnv3", depth),
-		#MyOwnv4("MyOwnv4", depth),
-		#MyOwnv5("MyOwnv5", depth),
-		#MyOwnv6("MyOwnv6", depth),
-		#MyOwnv7("MyOwnv7", depth),
+		#WonSeedsDiff3("WonSeedsDiff3", depth),
 		#StealSeedsBetterV2("steal_seeds_better2", depth),
 		#StealSeedsBetterV2_2("steal_seeds_better2_2", depth),
-		#StealSeedsBetterV2_2_impar("steal_seeds_better2_2_impar", depth),
-		StealSeedsBetterHoles("esburacado", depth),
-		StealSeedsBetterV2_2_impar("steal_seeds_better2_2_impar2", depth),
+		#StealSeedsBetterV2_2_impar_kalah_mod("steal_seeds_better2_2_impar2_mod", depth),
+		JogadorAlfaBeta("Ronaldo", depth, teste),
 	]
 	tournament = dict()
 	for index in range(start, end):
