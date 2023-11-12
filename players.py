@@ -65,6 +65,22 @@ def rouba_sementes(estado, jogador):
 	stolen_seeds.sort()
 	return stolen_seeds
 
+def rouba_sementes_novo(estado, jogador):
+	stolen_seeds = []
+	if jogador == estado.SOUTH:
+		start_well = 0
+		end_well = (len(estado.state)//2)-2
+	else:
+		start_well = 7
+		end_well = len(estado.state)-2
+	for i in range(start_well, end_well):
+		if estado.state[i] > 0 and i+estado.state[i] <= end_well and estado.state[i+estado.state[i]] == 0:
+			seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+			#if seeds_in_opposite_well > 0:
+			stolen_seeds.append(1 + seeds_in_opposite_well)
+	stolen_seeds.sort()
+	return stolen_seeds
+
 def stolen_seeds_adv(estado, jogador):
 	stolen_seeds = []
 	if jogador == estado.NORTH:
@@ -78,6 +94,22 @@ def stolen_seeds_adv(estado, jogador):
 			seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
 			if seeds_in_opposite_well > 0:
 				stolen_seeds.append(1 + seeds_in_opposite_well)
+	stolen_seeds.sort()
+	return stolen_seeds
+
+def stolen_seeds_adv_novo(estado, jogador):
+	stolen_seeds = []
+	if jogador == estado.NORTH:
+		start_well = 0
+		end_well = (len(estado.state)//2)-2
+	else:
+		start_well = 7
+		end_well = len(estado.state)-2
+	for i in range(start_well, end_well):
+		if estado.state[i] > 0 and i+estado.state[i] <= end_well and estado.state[i+estado.state[i]] == 0:
+			seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+			#if seeds_in_opposite_well > 0:
+			stolen_seeds.append(1 + seeds_in_opposite_well)
 	stolen_seeds.sort()
 	return stolen_seeds
 
@@ -129,7 +161,7 @@ def won_seeds_diff2(estado, jogador):
 	#return (estado.state[6] - estado.state[13])*3
 
 def won_seeds_diff3(estado, jogador):
-	#print(estado)
+	print(estado)
 	#score = (estado.state[13] - estado.state[6])*3
 	score = 0
 	if jogador == estado.SOUTH:
@@ -174,20 +206,34 @@ def roubo_sementes(estado, jogador):
 	return stolen_seeds
 
 def possivel_repete_jogadas(estado, jogador):
-	pits = 6
-	thefts = 0
-	i = pits
+	score = 0
 	if jogador == estado.SOUTH:
-		for pit in range(pits):
-			if estado.state[pit] == i:
-				thefts += 1
-			i -= 1
-	else :
-		for pit in range(7,14):
-			if estado.state[pit] == i:
-				thefts += 1
-			i -= 1
-	return thefts
+		if 1 == estado.state[5]:
+			score += 6
+		if 2 == estado.state[4]:
+			score += 5
+		if 3 == estado.state[3]:
+			score += 4
+		if 4 == estado.state[2]:
+			score += 3
+		if 5 == estado.state[1]:
+			score += 2
+		if 6 == estado.state[0]:
+			score += 1
+	else:
+		if 1 == estado.state[12]:
+			score += 6
+		if 2 == estado.state[11]:
+			score += 5
+		if 3 == estado.state[10]:
+			score += 4
+		if 4 == estado.state[9]:
+			score += 3
+		if 5 == estado.state[8]:
+			score += 2
+		if 6 == estado.state[7]:
+			score += 1
+	return score
 
 def possivel_repete_jogadas_adv(estado, jogador):
 	#contabilizar passings do adversario
@@ -229,7 +275,7 @@ def max_holes(estado, jogador):
 			if state[opposite_well_index(state,i)] == 0 and state[i] > 0:
 				adv_holes += 1
 	holes_list.sort()
-	if adv_holes > holes:
+	if adv_holes <= holes:
 		return []
 	return holes_list
 
@@ -698,7 +744,7 @@ def steal_seeds_better_v2_2_impar_kalah_mod(estado, jogador):
 	#print(estado)
 	""" if estado.pass_turn:
 		score -= 1 """
-	score += (possible_pass_v2(estado, jogador) - possivel_repete_jogadas_adv(estado, jogador)) * 32
+	score += (possible_pass_v2(estado, jogador) - possivel_repete_jogadas_adv(estado, jogador)) * 64
 	#score += (math.pow(estado.state[6],2) - math.pow(estado.state[13],2)) * 24
 	if jogador == estado.SOUTH:
 		score += (estado.state[6] - estado.state[13]) * (sys.maxsize - 48)
@@ -707,19 +753,19 @@ def steal_seeds_better_v2_2_impar_kalah_mod(estado, jogador):
 	stolen_seeds_list = rouba_sementes(estado, jogador)
 	stolen_seeds_num = 0
 	if(len(stolen_seeds_list) > 0):
-		stolen_seeds_num = (stolen_seeds_list[-1] + len(stolen_seeds_list)) * 64
+		stolen_seeds_num = (stolen_seeds_list[-1] + len(stolen_seeds_list)) * 128
 	score += stolen_seeds_num
 
 	stolen_seeds_list = stolen_seeds_adv(estado, jogador)
 	if(len(stolen_seeds_list) > 0):
-		stolen_seeds_num = (stolen_seeds_list[-1] + len(stolen_seeds_list)) * 64
+		stolen_seeds_num = (stolen_seeds_list[-1] + len(stolen_seeds_list)) * 128
 	score -= stolen_seeds_num
 
 	return score if jogador == estado.SOUTH else (-score)
 
 
 
-def teste(estado, jogador):
+def teste0(estado, jogador):
 	if estado.is_game_over():
 		return estado.result() * sys.maxsize
 	#print(estado)
@@ -728,87 +774,180 @@ def teste(estado, jogador):
 	score = 0
 	if estado.state[6] > 18:
 		i = 0
+	# Quão bom é este estado par ao SUL
 	if jogador == estado.SOUTH:
-		score = 0
-		if estado.pass_turn:
-			score -= estado.state[13]
-		#score += (possible_pass_v2(estado, jogador) - possivel_repete_jogadas_adv(estado, jogador))*2#16
-		passing = possible_pass_v2(estado, jogador) - possivel_repete_jogadas_adv(estado, jogador)
-		if passing > 0:
-			bonus += passing
-			new_passing = possible_pass_again(estado, jogador)
-			if new_passing > 0:
-				score += new_passing * estado.state[6] * 2 + 1
-			if new_passing > 0:
-				bonus += 1
-			score += passing  * estado.state[6] + 1
-
-		#score += sum(estado.state[:5]) - sum(estado.state[7:12])
-		#score += (math.pow(estado.state[6],2) - math.pow(estado.state[13],2)) * 24
-		stolen_seeds_list = rouba_sementes(estado,jogador)
-		if (len(stolen_seeds_list) > 0):
-			score += (stolen_seeds_list[-1] + len(stolen_seeds_list))* (48-estado.state[6]) #* 8#math.pow(estado.state[6],2)
-			bonus += stolen_seeds_list[-1]
-		stolen_seeds_list_adv = stolen_seeds_adv(estado, jogador)
-		if (len(stolen_seeds_list_adv) > 0):
-			score -= (stolen_seeds_list_adv[-1] + len(stolen_seeds_list_adv))*(48-estado.state[13]) #* 8#math.pow(estado.state[13],2)#*4
-			bonus_adv += stolen_seeds_list_adv[-1]
-		score += (estado.state[6] + bonus - estado.state[13] - bonus_adv) * 200#(sys.maxsize - 48)
-	else:
+		pass
+	else: #Quão bom é este estado para o NORTE
+		pass
+	score = 0
+	""" if estado.pass_turn:
+		score -= estado.state[13] """
+	passing = possible_pass_v2(estado, jogador) #- possivel_repete_jogadas_adv(estado, jogador)
+	if passing > 0:
+		bonus += passing
+		new_passing = possible_pass_again(estado, jogador)
+		if new_passing > 0:
+			score += new_passing #* estado.state[6] * 2 + 1
+		if new_passing > 0:
+			bonus += 1
+		score += passing  #* estado.state[6] + 1
+	score += len(max_holes(estado, jogador))
+	score += sum(estado.state[:5]) - sum(estado.state[7:12])
+	stolen_seeds_list = rouba_sementes_novo(estado,jogador)
+	if (len(stolen_seeds_list) > 0):
+		score += (stolen_seeds_list[-1] + len(stolen_seeds_list) + stolen_seeds_list[0])#* (estado.state[6]) #* 8#math.pow(estado.state[6],2)
+		bonus += stolen_seeds_list[-1]
+	stolen_seeds_list_adv = stolen_seeds_adv_novo(estado, jogador)
+	if (len(stolen_seeds_list_adv) > 0):
+		score -= (stolen_seeds_list_adv[-1] + len(stolen_seeds_list_adv) + stolen_seeds_list_adv[0])#*(estado.state[13]) #* 8#math.pow(estado.state[13],2)#*4
+		bonus_adv += stolen_seeds_list_adv[-1]
+	score += (estado.state[6] + bonus - estado.state[13] - bonus_adv) * 2
+	""" else:
 		score = 0
 		if estado.pass_turn:
 			score += estado.state[6]
-		#score -= (possible_pass_v2(estado, jogador) - possivel_repete_jogadas_adv(estado, jogador))*2#16
 		bonus = 0
 		bonus_adv = 0
-		passing = possible_pass_v2(estado, jogador) - possivel_repete_jogadas_adv(estado, jogador)
+		passing = possible_pass_v2(estado, jogador) #- possivel_repete_jogadas_adv(estado, jogador)
 
 		if passing > 0:
 			bonus += passing
 			new_passing = possible_pass_again(estado, jogador)
 			if new_passing > 0:
-				score -= new_passing * estado.state[13] * 2 + 1
+				score -= new_passing #* estado.state[13] * 2 + 1
 			if new_passing > 0:
 				bonus += 1
-			score -= passing * estado.state[13] +1#* 6
+			score -= passing #* estado.state[13] +1#* 6
 
-		#score -= possible_pass_again(estado, jogador) * 5
-		#score -= (sum(estado.state[7:12]) - sum(estado.state[:5]))
-		#score -= (math.pow(estado.state[13],2) - math.pow(estado.state[6],2)) * 24
-		stolen_seeds_list = rouba_sementes(estado,jogador)
+		score -= (sum(estado.state[7:12]) - sum(estado.state[:5]))
+		#stolen_seeds_list = rouba_sementes(estado,jogador)
+		stolen_seeds_list = rouba_sementes_novo(estado,jogador)
 		if (len(stolen_seeds_list) > 0):
-			score -= (stolen_seeds_list[-1] + len(stolen_seeds_list))*(48-estado.state[13])#*8#math.pow(estado.state[13],2)#*2#*4
+			score -= (stolen_seeds_list[-1] + len(stolen_seeds_list))#*(estado.state[13])#*8#math.pow(estado.state[13],2)#*2#*4
 			bonus += stolen_seeds_list[-1]
-		stolen_seeds_list_adv = stolen_seeds_adv(estado, jogador)
+		#stolen_seeds_list_adv = stolen_seeds_adv(estado, jogador)
+		stolen_seeds_list_adv = stolen_seeds_adv_novo(estado, jogador)
 		if (len(stolen_seeds_list_adv) > 0):
-			score += (stolen_seeds_list_adv[-1] + len(stolen_seeds_list_adv))*(48-estado.state[6])#*8#math.pow(estado.state[6],2)#*2#*4
+			score += (stolen_seeds_list_adv[-1] + len(stolen_seeds_list_adv))#*(estado.state[6])#*8#math.pow(estado.state[6],2)#*2#*4
 			bonus_adv += stolen_seeds_list_adv[-1]
-		score -= (estado.state[13] + bonus - estado.state[6] - bonus_adv) * 200#(sys.maxsize - 48)
+		score -= (estado.state[13] + bonus - estado.state[6] - bonus_adv) * (sys.maxsize - 48) """
 	return score
-	#ver se posso roubar se jogar dnv
-	#verficar a contagem das sementes depois de avaliar roubos
-	#score += (estado.state[6] - estado.state[13]) * 48
-	#print(estado)
-	""" if estado.pass_turn:
-		score -= 1 """
-	score += (possible_pass_v2(estado, jogador) - possivel_repete_jogadas_adv(estado, jogador))*2#16
-	#score += (estado.state[6] - estado.state[13]) * 20
-	if jogador == estado.SOUTH:
-		score += math.pow((estado.state[6] - estado.state[13]),25)# * (sys.maxsize - 48)
-	else:
-		score -= math.pow((estado.state[13] - estado.state[6]),25)# * (sys.maxsize - 48)
-	stolen_seeds_list = rouba_sementes(estado, jogador)
-	stolen_seeds_num = 0
-	if(len(stolen_seeds_list) > 0):
-		stolen_seeds_num = (stolen_seeds_list[-1] + len(stolen_seeds_list))*4#32
-	score += stolen_seeds_num
 
-	stolen_seeds_list = stolen_seeds_adv(estado, jogador)
-	if(len(stolen_seeds_list) > 0):
-		stolen_seeds_num = (stolen_seeds_list[-1] + len(stolen_seeds_list))*4#32
-	score -= stolen_seeds_num
+def teste3(estado, jogador):
+	if estado.is_game_over():
+		return estado.result() * sys.maxsize
+	score = 0
+	if jogador == estado.SOUTH: # Quão bom é este estado par ao SUL
+		# Sementes ganhas
+		score += (estado.state[6] - estado.state[13])*(sys.maxsize - 48)
+		# Jogadas que levam a jogar outra vez
+		if 1 == estado.state[5]:
+			score += 6
+		if 2 == estado.state[4]:
+			score += 5
+		if 3 == estado.state[3]:
+			score += 4
+		if 4 == estado.state[2]:
+			score += 3
+		if 5 == estado.state[1]:
+			score += 2
+		if 6 == estado.state[0]:
+			score += 1
+		# Jogadas em que podemos roubar sementes
+		stolen_seeds = [0]
+		for i in range(5):
+			if estado.state[i] > 0 and i+estado.state[i] < 6 and estado.state[i+estado.state[i]] == 0:
+				seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+				stolen_seeds.append(1 + seeds_in_opposite_well)
+		stolen_seeds.sort()
+		score += stolen_seeds[-1]
+		# Quantidade de sementes nos nossos poços
+		score += (sum(estado.state[0:5]) - sum(estado.state[7:12]))
+	else: #Quão bom é este estado para o NORTE
+		# Sementes ganhas
+		score += (estado.state[13] - estado.state[6])*(sys.maxsize - 48)
+		# Jogadas que levam a jogar outra vez
+		if 1 == estado.state[12]:
+			score += 6
+		if 2 == estado.state[11]:
+			score += 5
+		if 3 == estado.state[10]:
+			score += 4
+		if 4 == estado.state[9]:
+			score += 3
+		if 5 == estado.state[8]:
+			score += 2
+		if 6 == estado.state[7]:
+			score += 1
+		# Jogadas em que podemos roubar sementes
+		stolen_seeds = [0]
+		for i in range(7, 12):
+			if estado.state[i] > 0 and i+estado.state[i] < 6 and estado.state[i+estado.state[i]] == 0:
+				seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+				stolen_seeds.append(1 + seeds_in_opposite_well)
+		stolen_seeds.sort()
+		score += stolen_seeds[-1]
+		# Quantidade de sementes nos nossos poços
+		score += (sum(estado.state[7:12]) - sum(estado.state[0:5]))
+	return score
 
-	return score if jogador == estado.SOUTH else (-score)
+def ronaldo(estado, jogador):
+	if estado.is_game_over():
+		return estado.result() * sys.maxsize
+	score = 0
+	if jogador == estado.SOUTH: # Quão bom é este estado par ao SUL
+		# Sementes ganhas
+		score += (estado.state[6] - estado.state[13])*(sys.maxsize - 48)
+		# Jogadas que levam a jogar outra vez
+		if 1 == estado.state[5]:
+			score += 6
+		if 2 == estado.state[4]:
+			score += 5
+		if 3 == estado.state[3]:
+			score += 4
+		if 4 == estado.state[2]:
+			score += 3
+		if 5 == estado.state[1]:
+			score += 2
+		if 6 == estado.state[0]:
+			score += 1
+		# Jogadas em que podemos roubar sementes
+		stolen_seeds = [0]
+		for i in range(5):
+			if estado.state[i] > 0 and i+estado.state[i] < 6 and estado.state[i+estado.state[i]] == 0:
+				seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+				stolen_seeds.append(1 + seeds_in_opposite_well)
+		stolen_seeds.sort()
+		score += stolen_seeds[-1]
+		# Quantidade de sementes nos nossos poços
+		score += (sum(estado.state[0:5]) - sum(estado.state[7:12]))
+	else: #Quão bom é este estado para o NORTE
+		# Sementes ganhas
+		score += (estado.state[13] - estado.state[6])*(sys.maxsize - 48)
+		# Jogadas que levam a jogar outra vez
+		if 1 == estado.state[12]:
+			score += 6
+		if 2 == estado.state[11]:
+			score += 5
+		if 3 == estado.state[10]:
+			score += 4
+		if 4 == estado.state[9]:
+			score += 3
+		if 5 == estado.state[8]:
+			score += 2
+		if 6 == estado.state[7]:
+			score += 1
+		# Jogadas em que podemos roubar sementes
+		stolen_seeds = [0]
+		for i in range(7, 12):
+			if estado.state[i] > 0 and i+estado.state[i] < 6 and estado.state[i+estado.state[i]] == 0:
+				seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
+				stolen_seeds.append(1 + seeds_in_opposite_well)
+		stolen_seeds.sort()
+		score += stolen_seeds[-1]
+		# Quantidade de sementes nos nossos poços
+		score += (sum(estado.state[7:12]) - sum(estado.state[0:5]))
+	return score
 
 
 
