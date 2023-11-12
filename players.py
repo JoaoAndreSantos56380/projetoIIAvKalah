@@ -256,6 +256,8 @@ def possivel_repete_jogadas_adv(estado, jogador):
 
 def max_holes(estado, jogador):
 	#contabilizar buracos do adv -> feito aparntemente
+	if estado.state[6]:
+		i = 1
 	adv_holes = 0
 	holes = 0
 	holes_list = []
@@ -279,7 +281,31 @@ def max_holes(estado, jogador):
 		return []
 	return holes_list
 
-
+def holes(estado, jogador):
+	if estado.state[6]:
+		i = 1
+	adv_holes = 0
+	holes = 0
+	holes_list = []
+	state = estado.state
+	if jogador == estado.NORTH:
+		for i in range(0,6):
+			if state[i] == 0 and opposite_well(state, i) > 0:
+				holes_list.append(state[opposite_well_index(state, i)])
+				holes += 1
+			if state[opposite_well_index(state,i)] == 0 and state[i] > 0:
+				adv_holes += 1
+	else:
+		for i in range(7,13):
+			if state[i] == 0 and opposite_well(state, i) > 0:
+				holes_list.append(state[opposite_well_index(state, i)])
+				holes +=1
+			if state[opposite_well_index(state,i)] == 0 and state[i] > 0:
+				adv_holes += 1
+	holes_list.sort()
+	if adv_holes > holes:
+		return []
+	return holes_list
 # Jogadores
 def chapiteau(estado, jogador):
 	if estado.is_game_over():
@@ -896,6 +922,8 @@ def ronaldo(estado, jogador):
 		return estado.result() * sys.maxsize
 	score = 0
 	if jogador == estado.SOUTH: # Quão bom é este estado par ao SUL
+		if estado.pass_turn:
+			score -= (estado.state[13])
 		# Sementes ganhas
 		score += (estado.state[6] - estado.state[13])*(sys.maxsize - 48)
 		# Jogadas que levam a jogar outra vez
@@ -918,11 +946,17 @@ def ronaldo(estado, jogador):
 				seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
 				stolen_seeds.append(1 + seeds_in_opposite_well)
 		stolen_seeds.sort()
-		score += stolen_seeds[-1]
+		score += stolen_seeds[-1] + len(stolen_seeds) - 1
 		# Quantidade de sementes nos nossos poços
 		score += (sum(estado.state[0:5]) - sum(estado.state[7:12]))
+		#stolen_seeds_adv_list = [0]
+		#stolen_seeds_adv_list.extend(stolen_seeds_adv_novo(estado, jogador))
+		#score -= (stolen_seeds_adv_list[-1] - len(stolen_seeds_adv_list) - 1)
+		score -= len(holes(estado, jogador))
 	else: #Quão bom é este estado para o NORTE
 		# Sementes ganhas
+		if estado.pass_turn:
+			score -= (estado.state[6])
 		score += (estado.state[13] - estado.state[6])*(sys.maxsize - 48)
 		# Jogadas que levam a jogar outra vez
 		if 1 == estado.state[12]:
@@ -944,12 +978,21 @@ def ronaldo(estado, jogador):
 				seeds_in_opposite_well = opposite_well(estado.state, i+estado.state[i])
 				stolen_seeds.append(1 + seeds_in_opposite_well)
 		stolen_seeds.sort()
-		score += stolen_seeds[-1]
+		score += stolen_seeds[-1] + len(stolen_seeds) - 1
 		# Quantidade de sementes nos nossos poços
 		score += (sum(estado.state[7:12]) - sum(estado.state[0:5]))
+		#stolen_seeds_adv_list = [0]
+		#stolen_seeds_adv_list.extend(stolen_seeds_adv_novo(estado, jogador))
+		#score -= (stolen_seeds_adv_list[-1] + len(stolen_seeds_adv_list) - 1)
+		score -= len(holes(estado, jogador))
 	return score
 
 
+def buracos(estado, jogador):
+	#print(estado)
+	score = 0
+	score += len(holes(estado, jogador))
+	return score
 
 
 
