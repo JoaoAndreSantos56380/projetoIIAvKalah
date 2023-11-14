@@ -1,3 +1,5 @@
+#fc56380, fc56326
+#grupo 1408385
 import sys
 
 def opposite_well_1408385(state, index):
